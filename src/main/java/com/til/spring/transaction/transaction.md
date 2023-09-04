@@ -61,7 +61,8 @@ public void executeQuery() throws SQLException {
 ### Option1 Transaction Propagation
 - 기존에 트랜잭션이 진행중일 때 추가적인 트랜잭션을 진행하는 경우가 생김
 - `전파 속성(propagation)` 이미 트랜잭션이 진행 중일 때 추가 트랜잭션 진행을 어떻게 할지 결정하는 것
-    - 기존 트랜잭션에 참여 / 별도 트랜잭션으로 진행 / 에러를 발생
+    - 기존 트랜잭션에 참여 / 별도 트랜잭션으로 진행 / 에러를 발생  
+
 |  | 의미 | 기존 트랜잭션 없음 | 기존 트랜잭션 있음 | 
 | --- | --- | --- | --- |
 | REQUIRED | 트랜잭션이 필요함 | 새로운 트랜잭션을 생성함 | 기존 트랜잭션에 참여함 |
@@ -71,6 +72,7 @@ public void executeQuery() throws SQLException {
 | NOT_SUPPORTED | 트랜잭션을 지원하지 않음 | 트랜잭션 없이 진행함 | 기존 트랜잭션을 보류시키고, 트랜잭션 없이 진행함 |
 | NEVER | 트랜잭션을 사용하지 않음 | 트랜잭션 없이 진행 | IllegalTransactionStateException 예외 발생 |
 | NESTED | 중첩(자식) 트랜잭션을 만듦 | 새로운 트랜잭션을 생성함 | 중첩 트랜잭션을 만듦 |
+
 ### 물리 트랜잭션
 - 실제 데이터베이스 트랜잭션을 사용
 - 트랜잭션은 데이터베이스에서 제공하는 기술로 커넥션 객체를 통해 commit/rollback 처리
@@ -146,3 +148,12 @@ isolation(고립, 격리)은 ACID의 요소 중 하나이며, 동시에 여러 �
   - 이 경우 flush가 일어나지 않으므로 비용이 절감 
   - 생성/수정/삭제가 일어나지 않으므로 별도의 스냅샷을 만들 필요가 없어 성능상 이점
 - 트랜잭션 작업에서 쓰기 작업을 의도적으로 방지하기 위해 사용 가능
+
+## Propagation 관련 추가 내용 정리
+- 동일한 Bean 에서 메서드를 호출할 때 트랜잭션이 적용안되는 경우가 있음
+- 이는 스프링 AOP 내부 호출로 인해 발생
+  - Service 클래스에 Transactional(readonly=true) 로 설정
+  - Non-Transactional 인 메서드 -> Transactional 메서드를 호출하면 트랜잭션이 전파가 안될 수 있음
+  - 간혹 DB가 알아서 readonly 이지만 트랜잭션 처리를 해주는 경우가 있다고 함
+  - https://kwonnam.pe.kr/wiki/springframework/transaction
+- 해당 내용은 Proxy 에서 정리
